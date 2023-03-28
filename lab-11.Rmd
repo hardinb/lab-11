@@ -1,7 +1,7 @@
 ---
 title: "Lab 11 - Smoking during pregnancy"
-author: "Insert your name here"
-date: "Insert date here"
+author: "Ben Hardin"
+date: "3/28/2023"
 output: github_document
 ---
 
@@ -13,15 +13,180 @@ library(tidymodels)
 library(openintro)
 ```
 
+```{r set-seed}
+set.seed(1234)
+```
+
+```{r load-data}
+data(ncbirths)
+```
+
 ### Exercise 1
 
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+There are 1000 cases (births) in our sample. For each birth, there are 13 variables.
+
+1. Father's age (numerical)
+2. Mother's age (numerical)
+3. Whether the mother was classified as "young" or "mature" (categorical)
+4. Length of pregnancy in weeks (numerical)
+5. Whether the birth was classified as premature or full-term (categorical)
+6. Number of hospital visits during pregnancy (numerical)
+7. Whether the mother was married or not married (categorical)
+8. Weight gained by the mother during pregnancy (numerical)
+9. Weight of the baby at birth (numerical)
+10. Whether the baby was classified as low birthweight or not (categorical)
+11. Gender of the baby (categorical)
+12. Smoking status of the mother (categorical)
+13. Whether the mother is white or not white (categorical)
+
+There are a few outliers in our numerical data. In particular, there are a lot of outliers for the babyweight variable, with a few babies with very high birthweights and a lot of babies with very low birthweights.
+
+```{r examine-data}
+tibble(ncbirths)
+```
+
+```{r check-outliers, warning=F}
+ggplot(ncbirths, aes(y = fage))+
+  geom_boxplot()
+
+ggplot(ncbirths, aes(y = mage))+
+  geom_boxplot()
+
+ggplot(ncbirths, aes(y = weeks))+
+  geom_boxplot()
+
+ggplot(ncbirths, aes(y = visits))+
+  geom_boxplot()
+
+ggplot(ncbirths, aes(y = gained))+
+  geom_boxplot()
+
+ggplot(ncbirths, aes(y = weight))+
+  geom_boxplot()
+```
 
 ### Exercise 2
 
-...
+The average weight of (presumably) white babies is 7.25 pounds.
 
-Add exercise headings as needed.
+```{r dataset}
+ncbirths_white <- ncbirths %>%
+  filter(whitemom == "white")
+
+mean(ncbirths_white$weight, na.rm = T)
+```
+### Exercise 3
+
+We want to make an inference about what happens in the population, but we only have a sample from the population, so this is a good situation to use an inferential test.
+
+### Exercise 4
+
+First, i did one bootstrapped sample based on our sample of white NC births, which ended up having a mean = 7.28.
+
+```{r 1-samples}
+birth_boot1 <- ncbirths_white %>%
+  slice_sample(n = 1000, replace = T)
+
+mean(birth_boot1$weight, na.rm = T)
+```
+
+Then, I ran 1000 bootstrapped samples, and plotted the distribution of these sample means against the distribution of sample means under the null hypothesis.
+
+Then, I rat a t-test comparing these two distributions. The p-value for this test is p < .001, indicating that fewer than 0.1% of the bootstrapped sample means under the null hypothesis were as extreme as the observed mean of our sample.
+
+From this, we can conclude that the average weight of white babies born in NC in 2004 is most likely truly lower than the average weight of white babies born in the US in 1995. I also calculated a 95% confidence interval for our samples, which tells us we can be 95% confident that the average weight in the population of white babies born in NC is somewhere between 7.14 to 7.36 pounds.
+
+```{r boot}
+birth_boot <- ncbirths_white %>%
+  specify(response = weight) %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+```
+
+```{r compare-dists}
+mean(birth_boot$stat, na.rm = T)
+
+birth_boot <- birth_boot %>%
+  mutate(null = stat + 0.179903)
+
+ggplot(birth_boot)+
+  geom_histogram(aes(x = null), fill = "grey80", color = "black", alpha = 0.5)+
+  geom_histogram(aes(x = stat), fill = "blue3", color = "black", alpha = 0.5)+
+  theme_classic()
+```
+
+```{r hypothesis-test}
+t.test(birth_boot$null, birth_boot$stat)
+
+birth_boot %>%
+  summarize(lower = quantile(stat, 0.025),
+            upper = quantile(stat, 0.975))
+```
+
+### Exercise 5
+
+I made side-by-side boxplots showing baby's weight as a function of whether or not the mother is a smoker. What this shows is that children of smokers and non-smokers showed similar median weights at birth, but weights were generally somewhat lower for children of smoking mothers, and there were more outliers for children of non-smoking mothers.
+
+```{r boxes}
+ncbirths %>%
+  filter(!is.na(habit)) %>%
+ggplot(aes(x = habit, y = weight))+
+  geom_boxplot()
+```
+
+### Exercise 6
+
+I made a filtered dataset to only have those cases when mothers reported if they were smokers.
+
+```{r filter}
+ncbirths_habitgiven <- ncbirths %>%
+  filter(!is.na(habit))
+```
+
+### Exercise 7
+
+While there is descriptively a difference between the mean weight for children of smoking vs. non-smoking mothers, we want to know if this is a statistically significant difference (e.g., likely to be actually different between the two populations). Thus, we are going to see if we can reject the null hypothesis:
+
+H0: M(smokers) = M(non-smokers)
+
+and find evidence for the alternative hypothesis:
+
+H1: M(smokers) =/= M(non-smokers)
+
+```{r mean-diffs}
+ncbirths_habitgiven %>%
+  group_by(habit) %>%
+  summarise(mean_weight = mean(weight))
+```
+
+### Exercise 8
+
+Yes, because we want to infer from samples to a population.
+
+### Exercise 9
+
+```{r smoker-boots}
+smoker_boot <- ncbirths_habitgiven %>%
+  specify(response = weight) %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+```
+
+```{r means}
+mean(smoker_boot$stat, na.rm = T)
+
+smoker_boot <- smoker_boot %>%
+  mutate(nonsmoker_mean = stat + (7.144273 - 7.103702))
+
+smoker_boot <- smoker_boot %>%
+  mutate(smoker_mean = stat + (6.828730 - 7.103702))
+
+ggplot(smoker_boot)+
+  geom_histogram(aes(x = nonsmoker_mean), fill = "grey80", color = "black", alpha = 0.5)+
+  geom_histogram(aes(x = smoker_mean), fill = "grey30", color = "black", alpha = 0.5)+
+  theme_classic()
+```
+
+```{r smoke-test}
+t.test(smoker_boot$smoker_mean, smoker_boot$nonsmoker_mean)
+```

@@ -166,7 +166,7 @@ ncbirths_habitgiven %>%
 
 ### Exercise 8
 
-Yes, because we want to infer from samples to a population.
+This is an appropriate place to use an inferential test, because we have two samples from presumably independent populations, and we would like to test to find out whether the differences we found between these two samples are likely to generate to the population level (i.e., are they indeed two distinguishable population?)
 
 ### Exercise 9
 
@@ -214,6 +214,18 @@ get_ci(smoker_boot, level = 0.95)
 
 I determined the age cutoff for "maturity" in this dataset by 1) plotting histograms of age for mature vs. young mothers, and 2) getting a count for each age in both subsamples. Both of these show that the cutoff for maturity is 35 years.
 
+### Exercise 12
+
+Now, we would like to find out if mothers who are classified as "mature" are more likely to have babies that are classified as "low birth weight" compared to younger mothers. The null hypothesis is:
+
+H0: Proportion low birth weight(mature) = Proportion low birth weight (younger)
+
+Because we are using a two-tailed test, the non-directional alternative hypothesis is:
+
+H1: Proporion low birth weight(mature) =/= Proportion low birth weight (younger)
+
+To test this, I generated 10,000 bootstrapped samples of the difference between the proportion of younger mothers with low-weight babies and the proportion of mature mothers with low-weight babies under the null hypothesis, and then ran a test comparing this distribution to our observed proportion difference. The p-value was p = .37, indicating that 37% of the sample proportion differences under the null hypothesis were at least as extreme as our observed proportion difference. Under NHST, we reject the null hypothesis. It seems likely, based on our data, that the population of mature mothers does not differ from the population of younger mothers in terms of the likelihood that their child will have a low birthweight. 
+
 ```{r hist}
 ggplot(ncbirths, aes(x = mage, fill = mature))+
 geom_histogram(binwidth = 1)+
@@ -255,6 +267,8 @@ get_p_value(weight_age_null, obs_stat = observed_prop, direction = "both")
 ```
 
 ### Exercise 13
+
+Finally, I calculated a confidence interval for the distribution of sample proportion differences based on bootstrapping our data. The resulting confidence interval was (-.03, .09), indicating that we are 95% certain that, in the population, mature mothers have somewhere between 3% less to 9% more low birth weight children compared to younger mothers. Because this confidence interval contains 0, we are not confident that there is any real difference between mature mothers and younger mothers in this proportion. 
 
 ```{r propconfidence}
 get_ci(weight_age, level = 0.95)

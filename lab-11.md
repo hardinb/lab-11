@@ -122,9 +122,10 @@ mean(ncbirths_white$weight, na.rm = T)
 
 ### Exercise 3
 
-We want to make an inference about what happens in the population, but
-we only have a sample from the population, so this is a good situation
-to use an inferential test.
+In this case, we want to make an inference about what the true mean in
+the population is. Since we only have access to a sample from the
+population we are interested in, this is a case where we need to use an
+inferential test.
 
 ### Exercise 4
 
@@ -272,7 +273,7 @@ indeed two distinguishable population?)
 
 ### Exercise 9
 
-I started running 10,000 bootstrapped samples for the distribution of
+I started by running 10,000 bootstrapped samples for the distribution of
 sample mean differences, for the difference between the mean birthweight
 for the sample of children of non-smokers vs. the sample of children of
 smokers. Then, I generated a distribution of sample mean differences
@@ -357,33 +358,6 @@ plotting histograms of age for mature vs. young mothers, and 2) getting
 a count for each age in both subsamples. Both of these show that the
 cutoff for maturity is 35 years.
 
-### Exercise 12
-
-Now, we would like to find out if mothers who are classified as “mature”
-are more likely to have babies that are classified as “low birth weight”
-compared to younger mothers. The null hypothesis is:
-
-H0: Proportion low birth weight(mature) = Proportion low birth weight
-(younger)
-
-Because we are using a two-tailed test, the non-directional alternative
-hypothesis is:
-
-H1: Proporion low birth weight(mature) =/= Proportion low birth weight
-(younger)
-
-To test this, I generated 10,000 bootstrapped samples of the difference
-between the proportion of younger mothers with low-weight babies and the
-proportion of mature mothers with low-weight babies under the null
-hypothesis, and then ran a test comparing this distribution to our
-observed proportion difference. The p-value was p = .37, indicating that
-37% of the sample proportion differences under the null hypothesis were
-at least as extreme as our observed proportion difference. Under NHST,
-we reject the null hypothesis. It seems likely, based on our data, that
-the population of mature mothers does not differ from the population of
-younger mothers in terms of the likelihood that their child will have a
-low birthweight.
-
 ``` r
 ggplot(ncbirths, aes(x = mage, fill = mature))+
 geom_histogram(binwidth = 1)+
@@ -415,6 +389,31 @@ ncbirths %>%
     ## # … with 23 more rows
 
 ### Exercise 12
+
+Now, we would like to find out if mothers who are classified as “mature”
+are more likely to have babies that are classified as “low birth weight”
+compared to younger mothers. The null hypothesis is:
+
+H0: Proportion low birth weight(mature) = Proportion low birth weight
+(younger)
+
+Because we are using a two-tailed test, the non-directional alternative
+hypothesis is:
+
+H1: Proporion low birth weight(mature) =/= Proportion low birth weight
+(younger)
+
+To test this, I generated 10,000 bootstrapped samples of the difference
+between the proportion of younger mothers with low-weight babies and the
+proportion of mature mothers with low-weight babies under the null
+hypothesis, and then ran a test comparing this distribution to our
+observed proportion difference. The p-value was p = .37, indicating that
+37% of the sample proportion differences under the null hypothesis were
+at least as extreme as our observed proportion difference. Under NHST,
+we reject the null hypothesis. It seems likely, based on our data, that
+the population of mature mothers does not differ from the population of
+younger mothers in terms of the likelihood that their child will have a
+low birthweight.
 
 ``` r
 set.seed(1234)
